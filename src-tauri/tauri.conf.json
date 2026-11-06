@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "VieNeu TTS",
+  "version": "0.1.0",
+  "identifier": "local.vieneu-tts.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      { "title": "VieNeu TTS", "width": 1040, "height": 760, "minWidth": 720, "minHeight": 560 }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:*; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "resources": {
+      "../sidecar/server.py": "sidecar/server.py",
+      "../sidecar/engine.py": "sidecar/engine.py",
+      "../sidecar/store.py": "sidecar/store.py",
+      "../sidecar/requirements.lock": "sidecar/requirements.lock"
+    }
+  }
+}

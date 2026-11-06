@@ -1,0 +1,11 @@
+# Top-level dependencies of the sidecar. After editing, regenerate the lock:
+#   uv pip compile --universal --python-version 3.12 sidecar/requirements.in -o sidecar/requirements.lock
+vieneu==3.8.3
+# Upstream's uv.lock versions. huggingface-hub >= 2 stores blobs in a shared
+# directory layout that onnxruntime rejects ("External data path escapes model
+# directory"), so model loading fails on a fresh install without these pins.
+huggingface-hub==1.13.0
+onnxruntime==1.24.4
+fastapi>=0.115
+uvicorn>=0.30
+mcp>=2.3,<3
