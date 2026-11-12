@@ -8,7 +8,6 @@ import hashlib
 import importlib.metadata
 import logging
 import os
-import secrets
 import sys
 import threading
 import uuid
@@ -188,27 +187,7 @@ def build_mcp(service: Service) -> MCPServer:
     return mcp
 
 
-class BearerAuth:
-    """Blocks other local processes and web pages from driving the server.
-
-    Pure ASGI on purpose: BaseHTTPMiddleware buffers the SSE responses MCP relies on.
-    """
-
-    def __init__(self, app, token: str):
-        self.app = app
-        self.expected = f"Bearer {token}".encode()
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http" and scope["path"] != "/health":
-            supplied = dict(scope["headers"]).get(b"authorization", b"")
-            if not secrets.compare_digest(supplied, self.expected):
-                response = JSONResponse({"detail": "Thiếu hoặc sai API token."}, status_code=401)
-                await response(scope, receive, send)
-                return
-        await self.app(scope, receive, send)
-
-
-def create_app(data_dir: Path, token: str, load_tts=_load_vieneu) -> FastAPI:
+def create_app(data_dir: Path, load_tts=_load_vieneu) -> FastAPI:
     store = Store(data_dir)
     engine = Engine(store.add_history, load_tts)
     service = Service(store, engine)
@@ -223,8 +202,6 @@ def create_app(data_dir: Path, token: str, load_tts=_load_vieneu) -> FastAPI:
             yield
 
     app = FastAPI(title="VieNeu-TTS Local API", lifespan=lifespan)
-    app.add_middleware(BearerAuth, token=token)
-    # Added last so it wraps auth: preflight has no token, and a 401 must stay readable.
     app.add_middleware(
         CORSMiddleware, allow_origins=UI_ORIGINS, allow_methods=["*"], allow_headers=["*"]
     )
@@ -294,17 +271,6 @@ def create_app(data_dir: Path, token: str, load_tts=_load_vieneu) -> FastAPI:
     return app
 
 
-def load_or_create_token(data_dir: Path) -> str:
-    path = data_dir / "api_token"
-    if path.exists():
-        return path.read_text(encoding="utf-8").strip()
-    token = secrets.token_urlsafe(32)
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(token)
-    return token
-
-
 def _exit_when_parent_dies() -> None:
     # The app holds our stdin open, so EOF means it is gone, even after a crash.
     def watch():
@@ -331,7 +297,7 @@ def main() -> None:
 
     import uvicorn
 
-    app = create_app(data_dir, load_or_create_token(data_dir))
+    app = create_app(data_dir)
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
 
 

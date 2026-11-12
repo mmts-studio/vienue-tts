@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export interface ServerInfo { url: string; token: string }
+export interface ServerInfo { url: string }
 export interface Voice {
   name: string;
   kind: "preset" | "custom";
@@ -40,10 +40,7 @@ export class Api {
   private async request(path: string, init: RequestInit = {}): Promise<Response> {
     const response = await fetch(this.server.url + path, {
       ...init,
-      headers: {
-        Authorization: `Bearer ${this.server.token}`,
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-      },
+      headers: init.body ? { "Content-Type": "application/json" } : {},
     });
     if (!response.ok) {
       const body = await response.json().catch(() => null);
@@ -69,7 +66,6 @@ export class Api {
   job = (id: string) => this.json<Job>(`/v1/jobs/${id}`);
   history = () => this.json<HistoryItem[]>("/v1/history");
 
-  /** An <audio> element cannot send the token, so audio is fetched into a blob. */
   async audioBlob(path: string): Promise<Blob> {
     return (await this.request(path)).blob();
   }

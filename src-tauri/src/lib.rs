@@ -28,7 +28,6 @@ struct Sidecar {
 #[derive(Clone, Serialize)]
 struct ServerInfo {
     url: String,
-    token: String,
 }
 
 fn port() -> u16 {
@@ -256,8 +255,7 @@ fn start_server(app: AppHandle, sidecar: State<'_, Sidecar>) -> Result<ServerInf
         *guard = Some(child);
     }
 
-    let token = fs::read_to_string(data.join("api_token")).map_err(|e| format!("Không đọc được API token: {e}"))?;
-    Ok(ServerInfo { url: format!("http://127.0.0.1:{port}"), token: token.trim().to_string() })
+    Ok(ServerInfo { url: format!("http://127.0.0.1:{port}") })
 }
 
 #[tauri::command]

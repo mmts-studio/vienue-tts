@@ -6,7 +6,7 @@
 
 Tauri (`src-tauri/`) chỉ cài Python runtime và giữ tiến trình sidecar sống. Giao diện React (`src/`), REST API và MCP đều đi qua cùng một sidecar FastAPI (`sidecar/`), nên dùng chung giọng đọc, hàng đợi và lịch sử.
 
-Dữ liệu nằm trong thư mục dữ liệu của ứng dụng (macOS: `~/Library/Application Support/local.vieneu-tts.desktop`): môi trường Python, mô hình, `history.sqlite3`, `settings.json`, `api_token`, giọng custom mặc định.
+Dữ liệu nằm trong thư mục dữ liệu của ứng dụng (macOS: `~/Library/Application Support/local.vieneu-tts.desktop`): môi trường Python, mô hình, `history.sqlite3`, `settings.json`, giọng custom mặc định.
 
 ## Phát triển
 
@@ -25,7 +25,7 @@ Lưu ý khi nâng cấp: `huggingface-hub` từ 2.x đổi cách lưu cache làm
 
 ## Kết nối agent
 
-Xem URL, token và lệnh mẫu trong tab **API & MCP**. Server chỉ nghe ở `127.0.0.1:8765` và mọi route trừ `/health` đều cần `Authorization: Bearer <token>`. Đổi cổng bằng biến môi trường `VIENEU_TTS_PORT`.
+Xem URL và lệnh mẫu trong tab **API & MCP**. Server chỉ nghe ở `127.0.0.1:8765` và không cần token: mọi chương trình trên máy đều gọi được. Đổi cổng bằng biến môi trường `VIENEU_TTS_PORT`.
 
 Chạy không cần giao diện (sau khi ứng dụng đã cài xong):
 
@@ -46,7 +46,7 @@ Chạy không cần giao diện (sau khi ứng dụng đã cài xong):
 
 | Route | Công dụng |
 |---|---|
-| `GET /health` | Trạng thái server và mô hình (không cần token) |
+| `GET /health` | Trạng thái server và mô hình |
 | `POST /v1/tts` | Tạo job: `text`, tuỳ chọn `voice`, `output_dir` (tuyệt đối), `filename` |
 | `GET /v1/jobs/{id}` | Tiến độ và kết quả của job |
 | `GET /v1/history` | Lịch sử |
@@ -56,7 +56,7 @@ Chạy không cần giao diện (sau khi ứng dụng đã cài xong):
 | `GET /v1/voices/{name}/preview` | Nghe thử giọng |
 | `GET`, `PUT /v1/settings` | `voices_dir`, `output_dir` |
 
-Tài liệu tương tác của FastAPI có tại `/docs`, cũng cần token.
+Tài liệu tương tác của FastAPI có tại `/docs`.
 
 ## Giọng custom
 

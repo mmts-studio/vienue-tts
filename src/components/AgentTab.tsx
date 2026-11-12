@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ServerInfo } from "../api";
 
-const TOKEN_MASK = "•".repeat(24);
 const TOOLS: [string, string][] = [
   ["list_voices", "Liệt kê giọng đọc"],
   ["synthesize_speech", "Tạo file WAV, báo tiến độ và đợi đến khi xong"],
@@ -10,23 +9,19 @@ const TOOLS: [string, string][] = [
 ];
 
 export default function AgentTab({ server }: { server: ServerInfo }) {
-  const { url, token } = server;
-  const [showToken, setShowToken] = useState(false);
-  // Snippets stay masked on screen; their copy buttons still give the full command.
-  const mask = (text: string) => (showToken ? text : text.replaceAll(token, TOKEN_MASK));
-  const claude = `claude mcp add --transport http vieneu-tts ${url}/mcp --header "Authorization: Bearer ${token}"`;
+  const { url } = server;
+  const claude = `claude mcp add --transport http vieneu-tts ${url}/mcp`;
   const mcpJson = JSON.stringify(
-    { mcpServers: { "vieneu-tts": { type: "http", url: `${url}/mcp`, headers: { Authorization: `Bearer ${token}` } } } },
+    { mcpServers: { "vieneu-tts": { type: "http", url: `${url}/mcp` } } },
     null,
     2,
   );
   const curl = `curl -X POST ${url}/v1/tts \\
-  -H "Authorization: Bearer ${token}" \\
   -H "Content-Type: application/json" \\
   -d '{"text": "Xin chào", "voice": "Hải Đăng"}'
 
 # Trả về job id, sau đó theo dõi tiến độ:
-curl ${url}/v1/jobs/<job_id> -H "Authorization: Bearer ${token}"`;
+curl ${url}/v1/jobs/<job_id>`;
 
   return (
     <div className="stack agent">
@@ -40,18 +35,12 @@ curl ${url}/v1/jobs/<job_id> -H "Authorization: Bearer ${token}"`;
           <dd><code>{url}</code><Copy value={url} /></dd>
           <dt>Địa chỉ MCP</dt>
           <dd><code>{url}/mcp</code><Copy value={`${url}/mcp`} /></dd>
-          <dt>API token</dt>
-          <dd>
-            <code>{showToken ? token : TOKEN_MASK}</code>
-            <button onClick={() => setShowToken(!showToken)}>{showToken ? "Ẩn" : "Hiện"}</button>
-            <Copy value={token} />
-          </dd>
         </dl>
-        <p className="hint">Token cho phép ghi file vào máy bạn, nên chỉ đưa cho agent bạn tin tưởng.</p>
+        <p className="hint">API không cần token: mọi chương trình trên máy này đều gọi được và ghi được file vào máy bạn.</p>
       </section>
 
-      <Snippet title="Claude Code" code={claude} shown={mask(claude)} />
-      <Snippet title="Cấu hình MCP (Cursor, Claude Desktop và các client hỗ trợ HTTP)" code={mcpJson} shown={mask(mcpJson)} />
+      <Snippet title="Claude Code" code={claude} />
+      <Snippet title="Cấu hình MCP (Cursor, Claude Desktop và các client hỗ trợ HTTP)" code={mcpJson} />
 
       <section>
         <h2 className="section-title">Công cụ MCP</h2>
@@ -62,19 +51,19 @@ curl ${url}/v1/jobs/<job_id> -H "Authorization: Bearer ${token}"`;
         </ul>
       </section>
 
-      <Snippet title="REST API" code={curl} shown={mask(curl)} />
+      <Snippet title="REST API" code={curl} />
     </div>
   );
 }
 
-function Snippet({ title, code, shown }: { title: string; code: string; shown: string }) {
+function Snippet({ title, code }: { title: string; code: string }) {
   return (
     <section>
       <div className="snippet-head">
         <h2 className="section-title">{title}</h2>
         <Copy value={code} />
       </div>
-      <pre className="code">{shown}</pre>
+      <pre className="code">{code}</pre>
     </section>
   );
 }

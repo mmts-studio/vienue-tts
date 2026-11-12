@@ -11,10 +11,6 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from server import create_app  # noqa: E402
 
-TOKEN = "test-token"
-AUTH = {"Authorization": f"Bearer {TOKEN}"}
-
-
 class FakeTts:
     sample_rate = 48_000
 
@@ -39,7 +35,7 @@ def fake():
 
 @pytest.fixture
 def client(tmp_path, fake):
-    with TestClient(create_app(tmp_path / "data", TOKEN, lambda: fake), headers=AUTH) as c:
+    with TestClient(create_app(tmp_path / "data", lambda: fake)) as c:
         yield c
 
 
@@ -57,13 +53,11 @@ def clip(path, seconds=4):
     return str(path)
 
 
-def test_token_required_everywhere_except_health(tmp_path, fake):
-    with TestClient(create_app(tmp_path / "d", TOKEN, lambda: fake)) as anon:
+def test_api_needs_no_token(tmp_path, fake):
+    with TestClient(create_app(tmp_path / "d", lambda: fake)) as anon:
         assert anon.get("/health").status_code == 200
-        assert anon.get("/v1/voices").status_code == 401
-        assert anon.post("/mcp", json={}).status_code == 401
-        wrong = {"Authorization": "Bearer nope"}
-        assert anon.get("/v1/history", headers=wrong).status_code == 401
+        assert anon.get("/v1/voices").status_code == 200
+        assert anon.get("/v1/history").status_code == 200
 
 
 def test_tts_writes_file_and_records_history(client, tmp_path):
